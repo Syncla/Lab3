@@ -3,9 +3,10 @@ package pokerBase;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.*;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 
 import exceptions.DeckException;
@@ -84,9 +85,9 @@ public class Hand {
 		ArrayList<Card> currentHand = hand.getCardsInHand();
 		int cardNumber=1;
 		//For every card possible except Jokers
-		for (eSuit eSuit : eSuit.values()) {
+		//for (eSuit eSuit : eSuit.values()) {
 			for (eRank eRank : eRank.values()) {
-				if ((eRank != eRank.JOKER) && (eSuit != eSuit.JOKER)){
+				if ((eRank != eRank.JOKER)){
 					//Create a new hand
 					Hand tempHand = new Hand();
 					//Create a set of cards for the new hand
@@ -96,7 +97,7 @@ public class Hand {
 						replacedHand.add(new Card(card.geteSuit(),card.geteRank(),card.getiCardNbr()));
 					}
 					//Replace the wild card with the new card
-					replacedHand.set(index, new Card(eSuit,eRank,cardNumber));
+					replacedHand.set(index, new Card(eSuit.JOKER,eRank,cardNumber));
 					//Change the wild card to a non-wild card
 					replacedHand.get(index).setWild(false);
 					//Assign the new hand of cards to tempHand
@@ -107,7 +108,7 @@ public class Hand {
 					
 				}
 				cardNumber++;				
-			}		
+			//}		
 		}
 		return createdHands;
 	}
@@ -155,25 +156,21 @@ public class Hand {
 								//Replace that hand with all 52 possible hands
 								ArrayList<Hand> replacedWildHand = wildReplacer(tempHand,indexOfCurrentHand);
 								//Add the new hands to the array of hands
-								for (Hand hand:replacedWildHand){
-									if (!(hands.contains(hand))){
-										hands.add(hand);
-									}
-									else{
-										System.out.println(hands.contains(hand));
-									}
-								}
+								Set<Hand> removingDuplicates = new HashSet<Hand>();
+								removingDuplicates.addAll(replacedWildHand);
+								removingDuplicates.addAll(hands);
+								hands.clear();
+								hands.addAll(removingDuplicates);
 							}
 						}
 					}
 				}while (wildInHand);
 				for (Hand hand:hands){
 					hand.containsJoker=true;
-					Hand.EvaluateHand(hand);
+					hand=Hand.EvaluateHand(hand);
 				}
 				Hand bestHand = PickBestHand(hands);
-				//bestHand.containsJoker=true;
-				//bestHand=Hand.EvaluateHand(bestHand);
+				System.out.println(bestHand.getHandScore().getHandStrength());
 				HandScore bestHandScore = new HandScore();
 				for (eHandStrength hstr : eHandStrength.values()) {
 					Class[] cArg = new Class[2];
@@ -190,6 +187,9 @@ public class Hand {
 				}
 				bestHand.setHandScore(bestHandScore);
 				bestHand.bScored=true;
+				for(Card card:bestHand.getCardsInHand()){
+					System.out.println(card);
+				}
 				return bestHand;
 				
 				
@@ -237,7 +237,7 @@ public class Hand {
 		for (eSuit Suit : eSuit.values()) {
 			cnt = 0;
 			for (Card c : cards) {
-				if (c.geteSuit() == Suit) {
+				if (c.geteSuit() == Suit || c.geteSuit()==eSuit.JOKER) {
 					cnt++;
 				}
 			}
@@ -645,7 +645,6 @@ public class Hand {
 		public int compare(Hand h1, Hand h2) {
 
 			int result = 0;
-
 			result = h2.getHandScore().getHandStrength() - h1.getHandScore().getHandStrength();
 
 			if (result != 0) {

@@ -187,7 +187,9 @@ public class HandTest {
 	}
 	@Test
 	public void TestJokerFourOfAKindEval2() {
-		
+		System.out.println();
+		System.out.println();
+		System.out.println("Start");
 		ArrayList<Card> FourOfAKind = new ArrayList<Card>();
 		FourOfAKind.add(new Card(eSuit.JOKER,eRank.JOKER,0));
 		FourOfAKind.add(new Card(eSuit.JOKER,eRank.JOKER,0));
@@ -403,10 +405,10 @@ public class HandTest {
 		HandScore hs = new HandScore();
 		ArrayList<Card> FiveOfAKind = new ArrayList<Card>();
 		FiveOfAKind.add(new Card(eSuit.CLUBS,eRank.ACE,0));
-		FiveOfAKind.add(new Card(eSuit.CLUBS,eRank.ACE,0));
+		FiveOfAKind.add(new Card(eSuit.SPADES,eRank.ACE,0));
 		FiveOfAKind.add(new Card(eSuit.JOKER,eRank.JOKER,0));		
-		FiveOfAKind.add(new Card(eSuit.CLUBS,eRank.ACE,0));
-		FiveOfAKind.add(new Card(eSuit.CLUBS,eRank.ACE,0));
+		FiveOfAKind.add(new Card(eSuit.HEARTS,eRank.ACE,0));
+		FiveOfAKind.add(new Card(eSuit.DIAMONDS,eRank.ACE,0));
 		
 		Hand h = new Hand();
 		h = SetHand(FiveOfAKind,h);
@@ -414,6 +416,7 @@ public class HandTest {
 	
 		try {
 			h = Hand.EvaluateHand(h);
+			
 		} catch (HandException e) {			
 			e.printStackTrace();
 			fail("TestFourOfAKindEval failed");
@@ -1273,28 +1276,30 @@ public class HandTest {
 		
 	}		
 	
-	@Test
-	public void TestRoyalFlush() {
-		
-		HandScore hs = new HandScore();
-		ArrayList<Card> RoyalFlush = new ArrayList<Card>();
-		RoyalFlush.add(new Card(eSuit.CLUBS,eRank.TEN,0));
-		RoyalFlush.add(new Card(eSuit.JOKER,eRank.JOKER,0));
-		RoyalFlush.add(new Card(eSuit.CLUBS,eRank.QUEEN,0));		
-		RoyalFlush.add(new Card(eSuit.CLUBS,eRank.KING,0));
-		RoyalFlush.add(new Card(eSuit.CLUBS,eRank.ACE,0));
-		Collections.sort(RoyalFlush);
-		Hand h = new Hand();
-		h = SetHand(RoyalFlush,h);
-		
-		boolean bActualIsRoyalFlush = Hand.isHandRoyalFlush(h, hs);
-		boolean bExpectedIsRoyalFlush = true;
-		
-		assertEquals(bExpectedIsRoyalFlush,bActualIsRoyalFlush);		
-		
-		assertEquals(hs.getHiHand(),eRank.ACE.getiRankNbr());	
-	}
-	
+//	@Test
+//	public void TestRoyalFlush() {
+//		
+//		HandScore hs = new HandScore();
+//		ArrayList<Card> RoyalFlush = new ArrayList<Card>();
+//		RoyalFlush.add(new Card(eSuit.CLUBS,eRank.TEN,0));
+//		RoyalFlush.add(new Card(eSuit.JOKER,eRank.JOKER,0));
+//		RoyalFlush.add(new Card(eSuit.CLUBS,eRank.QUEEN,0));		
+//		RoyalFlush.add(new Card(eSuit.CLUBS,eRank.KING,0));
+//		RoyalFlush.add(new Card(eSuit.CLUBS,eRank.ACE,0));
+//		Collections.sort(RoyalFlush);
+//		Hand h = new Hand();
+//		h = SetHand(RoyalFlush,h);
+//		
+//		boolean bActualIsRoyalFlush = Hand.isHandRoyalFlush(h, hs);
+//		boolean bExpectedIsRoyalFlush = true;
+//		for (Card card:h.getCardsInHand()){
+//			System.out.println(card);
+//		}
+//		assertEquals(bExpectedIsRoyalFlush,bActualIsRoyalFlush);		
+//		
+//		assertEquals(hs.getHiHand(),eRank.ACE.getiRankNbr());	
+//	}
+//	
 	@Test
 	public void TestRoyalFlushEval() {
 		
@@ -1673,9 +1678,9 @@ public class HandTest {
 		
 		HandScore hs = new HandScore();
 		ArrayList<Card> FullHouse = new ArrayList<Card>();
-		FullHouse.add(new Card(eSuit.JOKER,eRank.JOKER,0));
 		FullHouse.add(new Card(eSuit.CLUBS,eRank.TEN,0));
-		FullHouse.add(new Card(eSuit.CLUBS,eRank.KING,0));		
+		FullHouse.add(new Card(eSuit.CLUBS,eRank.TEN,0));
+		FullHouse.add(new Card(eSuit.JOKER,eRank.JOKER,0));		
 		FullHouse.add(new Card(eSuit.CLUBS,eRank.KING,0));
 		FullHouse.add(new Card(eSuit.CLUBS,eRank.KING,0));
 		Collections.sort(FullHouse);
@@ -1888,19 +1893,19 @@ public class HandTest {
 		
 		for (Hand h : hands)
 		{
-			System.out.print(h.getHandScore().getHandStrength());
-			System.out.print(' ');
-			System.out.print(h.getHandScore().getHiHand());
-			System.out.print(' ');
-			System.out.print(h.getHandScore().getLoHand());
-			System.out.print(' ');
+//			System.out.print(h.getHandScore().getHandStrength());
+//			System.out.print(' ');
+//			System.out.print(h.getHandScore().getHiHand());
+//			System.out.print(' ');
+//			System.out.print(h.getHandScore().getLoHand());
+//			System.out.print(' ');
 			
-			for (Card k: h.getHandScore().getKickers())
-			{
-				System.out.print(k.geteRank().toString());
-				System.out.print(' ');
-			}
-			System.out.println(' ');
+//			for (Card k: h.getHandScore().getKickers())
+//			{
+//				System.out.print(k.geteRank().toString());
+//				System.out.print(' ');
+//			}
+//			System.out.println(' ');
 		}
 		
 	}
