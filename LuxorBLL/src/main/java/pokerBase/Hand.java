@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
+
 import exceptions.DeckException;
 import exceptions.HandException;
 import pokerEnums.eCardNo;
@@ -69,9 +70,13 @@ public class Hand {
 		CardsInHand.add(d.Draw());
 		return this;
 	}
+	
 	public static Hand PickBestHand(ArrayList<Hand> hands) throws HandException{
 		Hand bestHand=new Hand();
-		Collections.sort(hands, HandRank);
+		for(Hand hand:hands){
+			hand = Hand.EvaluateHand(hand);
+		}
+		Collections.sort(hands,HandRank);
 		if(hands.get(0).compareTo(hands.get(1))==0){
 			throw new HandException(hands.get(0));
 		}
@@ -170,7 +175,6 @@ public class Hand {
 					hand=Hand.EvaluateHand(hand);
 				}
 				Hand bestHand = PickBestHand(hands);
-				System.out.println(bestHand.getHandScore().getHandStrength());
 				HandScore bestHandScore = new HandScore();
 				for (eHandStrength hstr : eHandStrength.values()) {
 					Class[] cArg = new Class[2];
@@ -187,9 +191,6 @@ public class Hand {
 				}
 				bestHand.setHandScore(bestHandScore);
 				bestHand.bScored=true;
-				for(Card card:bestHand.getCardsInHand()){
-					System.out.println(card);
-				}
 				return bestHand;
 				
 				

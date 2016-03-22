@@ -187,9 +187,6 @@ public class HandTest {
 	}
 	@Test
 	public void TestJokerFourOfAKindEval2() {
-		System.out.println();
-		System.out.println();
-		System.out.println("Start");
 		ArrayList<Card> FourOfAKind = new ArrayList<Card>();
 		FourOfAKind.add(new Card(eSuit.JOKER,eRank.JOKER,0));
 		FourOfAKind.add(new Card(eSuit.JOKER,eRank.JOKER,0));
