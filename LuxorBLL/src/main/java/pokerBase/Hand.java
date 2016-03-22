@@ -1,20 +1,19 @@
 package pokerBase;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.Locale;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import exceptions.DeckException;
 import exceptions.HandException;
-import pokerEnums.*;
-
-import static java.lang.System.out;
-import static java.lang.System.err;
+import pokerEnums.eCardNo;
+import pokerEnums.eHandStrength;
+import pokerEnums.eRank;
+import pokerEnums.eSuit;
 
 public class Hand {
 
@@ -22,7 +21,7 @@ public class Hand {
 	private ArrayList<Card> BestCardsInHand;
 	private HandScore HandScore;
 	private boolean bScored = false;
-
+	private boolean containsJoker = false;
 	public Hand() {
 		CardsInHand = new ArrayList<Card>();
 		BestCardsInHand = new ArrayList<Card>();
@@ -32,7 +31,7 @@ public class Hand {
 		return CardsInHand;
 	}
 
-	private void setCardsInHand(ArrayList<Card> cardsInHand) {
+	public void setCardsInHand(ArrayList<Card> cardsInHand) {
 		CardsInHand = cardsInHand;
 	}
 
@@ -69,7 +68,49 @@ public class Hand {
 		CardsInHand.add(d.Draw());
 		return this;
 	}
-
+	public static Hand PickBestHand(ArrayList<Hand> hands) throws HandException{
+		Hand bestHand=new Hand();
+		Collections.sort(hands, HandRank);
+		if(hands.get(0).compareTo(hands.get(1))==0){
+			throw new HandException(hands.get(0));
+		}
+		else{
+			bestHand = hands.get(0);
+		}
+		return bestHand;
+	}
+	public static ArrayList<Hand> wildReplacer(Hand hand, int index){
+		ArrayList<Hand> createdHands = new ArrayList<Hand>();
+		ArrayList<Card> currentHand = hand.getCardsInHand();
+		int cardNumber=1;
+		//For every card possible except Jokers
+		for (eSuit eSuit : eSuit.values()) {
+			for (eRank eRank : eRank.values()) {
+				if ((eRank != eRank.JOKER) && (eSuit != eSuit.JOKER)){
+					//Create a new hand
+					Hand tempHand = new Hand();
+					//Create a set of cards for the new hand
+					ArrayList<Card> replacedHand = new ArrayList<Card>();
+					//Set them equal to the current hand
+					for (Card card:currentHand){
+						replacedHand.add(new Card(card.geteSuit(),card.geteRank(),card.getiCardNbr()));
+					}
+					//Replace the wild card with the new card
+					replacedHand.set(index, new Card(eSuit,eRank,cardNumber));
+					//Change the wild card to a non-wild card
+					replacedHand.get(index).setWild(false);
+					//Assign the new hand of cards to tempHand
+					tempHand.setCardsInHand(replacedHand);
+					Collections.sort(tempHand.getCardsInHand());
+					//Add the new tempHand to the list of created hands
+					createdHands.add(tempHand);
+					
+				}
+				cardNumber++;				
+			}		
+		}
+		return createdHands;
+	}
 	/**
 	 * EvaluateHand is a static method that will score a given Hand of cards
 	 * 
@@ -90,24 +131,88 @@ public class Hand {
 		HandScore hs = new HandScore();
 		try {
 			Class<?> c = Class.forName("pokerBase.Hand");
-
-			for (eHandStrength hstr : eHandStrength.values()) {
-				Class[] cArg = new Class[2];
-				cArg[0] = pokerBase.Hand.class;
-				cArg[1] = pokerBase.HandScore.class;
-
-				Method meth = c.getMethod(hstr.getEvalMethod(), cArg);
-				Object o = meth.invoke(null, new Object[] { h, hs });
-
-				// If o = true, that means the hand evaluated- skip the rest of
-				// the evaluations
-				if ((Boolean) o) {
-					break;
+			int numberOfWilds=0;
+			for (Card card:h.CardsInHand){
+				if (card.getWild()){
+					numberOfWilds++;
 				}
 			}
+			if (numberOfWilds!=0){
+				ArrayList<Hand> hands = new ArrayList<Hand>();
+				boolean wildInHand=true;
+				hands.add(h);
+				do{
+					wildInHand=false;
+					//For each hand in hands
+					for (int indexOfHand = hands.size()-1;indexOfHand>=0;indexOfHand--){
+						//For each card in that hand
+						for (int indexOfCurrentHand=0;indexOfCurrentHand<hands.get(indexOfHand).CardsInHand.size();indexOfCurrentHand++){
+							if (hands.get(indexOfCurrentHand).getCardsInHand().get(indexOfCurrentHand).getWild()){
+								//Indicate that the code needs to loop again to check for wilds
+								wildInHand=true;
+								//Remove the hand that is being swapped
+								Hand tempHand = hands.remove(indexOfHand);
+								//Replace that hand with all 52 possible hands
+								ArrayList<Hand> replacedWildHand = wildReplacer(tempHand,indexOfCurrentHand);
+								//Add the new hands to the array of hands
+								for (Hand hand:replacedWildHand){
+									if (!(hands.contains(hand))){
+										hands.add(hand);
+									}
+									else{
+										System.out.println(hands.contains(hand));
+									}
+								}
+							}
+						}
+					}
+				}while (wildInHand);
+				for (Hand hand:hands){
+					hand.containsJoker=true;
+					Hand.EvaluateHand(hand);
+				}
+				Hand bestHand = PickBestHand(hands);
+				//bestHand.containsJoker=true;
+				//bestHand=Hand.EvaluateHand(bestHand);
+				HandScore bestHandScore = new HandScore();
+				for (eHandStrength hstr : eHandStrength.values()) {
+					Class[] cArg = new Class[2];
+					cArg[0] = pokerBase.Hand.class;
+					cArg[1] = pokerBase.HandScore.class;
 
-			h.bScored = true;
-			h.HandScore = hs;
+					Method meth = c.getMethod(hstr.getEvalMethod(), cArg);
+					Object o = meth.invoke(null, new Object[] { bestHand, bestHandScore });
+					// If o = true, that means the hand evaluated- skip the rest of
+					// the evaluations
+					if ((Boolean) o) {
+						break;
+					}
+				}
+				bestHand.setHandScore(bestHandScore);
+				bestHand.bScored=true;
+				return bestHand;
+				
+				
+			}
+			else{
+				for (eHandStrength hstr : eHandStrength.values()) {
+					Class[] cArg = new Class[2];
+					cArg[0] = pokerBase.Hand.class;
+					cArg[1] = pokerBase.HandScore.class;
+
+					Method meth = c.getMethod(hstr.getEvalMethod(), cArg);
+					Object o = meth.invoke(null, new Object[] { h, hs });
+
+					// If o = true, that means the hand evaluated- skip the rest of
+					// the evaluations
+					if ((Boolean) o) {
+						break;
+					}
+				}
+
+				h.bScored = true;
+				h.HandScore = hs;
+			}
 
 		} catch (ClassNotFoundException x) {
 			x.printStackTrace();
@@ -221,6 +326,22 @@ public class Hand {
 		}
 
 		return isRoyalFlush;
+	}
+	public static boolean isHandNaturalRoyalFlush(Hand h, HandScore hs) {
+
+		Card c = new Card();
+		boolean isNaturalRoyalFlush = false;
+		if ((!h.containsJoker) && (isHandFlush(h.getCardsInHand())) && (isStraight(h.getCardsInHand(), c))) {
+			if (c.geteRank() == eRank.ACE) {
+				isNaturalRoyalFlush = true;
+				hs.setHandStrength(eHandStrength.RoyalFlush.getHandStrength());
+				hs.setHiHand(h.getCardsInHand().get(eCardNo.FirstCard.getCardNo()).geteRank().getiRankNbr());
+				hs.setLoHand(0);
+			}
+
+		}
+
+		return isNaturalRoyalFlush;
 	}
 
 	public static boolean isHandStraightFlush(Hand h, HandScore hs) {
@@ -454,7 +575,71 @@ public class Hand {
 		hs.setKickers(kickers);
 		return true;
 	}
+	public int compareTo(Hand h2) {
+		Hand h1=this;
+		int result = 0;
 
+		result = h2.getHandScore().getHandStrength() - h1.getHandScore().getHandStrength();
+
+		if (result != 0) {
+			return result;
+		}
+
+		result = h2.getHandScore().getHiHand() - h1.getHandScore().getHiHand();
+		if (result != 0) {
+			return result;
+		}
+
+		result = h2.getHandScore().getLoHand() - h1.getHandScore().getLoHand();
+		if (result != 0) {
+			return result;
+		}
+
+		if (h2.getHandScore().getKickers().size() > 0) {
+			if (h1.getHandScore().getKickers().size() > 0) {
+				result = h2.getHandScore().getKickers().get(eCardNo.FirstCard.getCardNo()).geteRank().getiRankNbr()
+						- h1.getHandScore().getKickers().get(eCardNo.FirstCard.getCardNo()).geteRank()
+								.getiRankNbr();
+			}
+			if (result != 0) {
+				return result;
+			}
+		}
+
+		if (h2.getHandScore().getKickers().size() > 1) {
+			if (h1.getHandScore().getKickers().size() > 1) {
+				result = h2.getHandScore().getKickers().get(eCardNo.SecondCard.getCardNo()).geteRank().getiRankNbr()
+						- h1.getHandScore().getKickers().get(eCardNo.SecondCard.getCardNo()).geteRank()
+								.getiRankNbr();
+			}
+			if (result != 0) {
+				return result;
+			}
+		}
+
+		if (h2.getHandScore().getKickers().size() > 2) {
+			if (h1.getHandScore().getKickers().size() > 2) {
+				result = h2.getHandScore().getKickers().get(eCardNo.ThirdCard.getCardNo()).geteRank().getiRankNbr()
+						- h1.getHandScore().getKickers().get(eCardNo.ThirdCard.getCardNo()).geteRank()
+								.getiRankNbr();
+			}
+			if (result != 0) {
+				return result;
+			}
+		}
+
+		if (h2.getHandScore().getKickers().size() > 3) {
+			if (h1.getHandScore().getKickers().size() > 3) {
+				result = h2.getHandScore().getKickers().get(eCardNo.FourthCard.getCardNo()).geteRank().getiRankNbr()
+						- h1.getHandScore().getKickers().get(eCardNo.FourthCard.getCardNo()).geteRank()
+								.getiRankNbr();
+			}
+			if (result != 0) {
+				return result;
+			}
+		}
+		return 0;
+	}
 	public static Comparator<Hand> HandRank = new Comparator<Hand>() {
 
 		public int compare(Hand h1, Hand h2) {

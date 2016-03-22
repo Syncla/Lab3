@@ -49,8 +49,11 @@ public class Deck {
 	public Deck (int NbrOfJokers, ArrayList<Card> wilds)
 	{
 		this(NbrOfJokers);
-		
-		// Work to do!  Make the existing Deck cards Wild...  
+		for (Card wild:wilds){
+			int index=wild.getiCardNbr()-1;
+			this.deckCards.get(index).setWild(true);
+		}
+		 
 		
 	}
 	

@@ -10,6 +10,7 @@ public class Card implements Comparable {
 	private eSuit eSuit;
 	private eRank eRank;
 	private int iCardNbr;
+	private boolean wild;
 	
 	public Card()
 	{
@@ -18,6 +19,9 @@ public class Card implements Comparable {
 	public Card(pokerEnums.eSuit eSuit, pokerEnums.eRank eRank, int iCardNbr) {
 		super();
 		this.eSuit = eSuit;
+		if(eRank==pokerEnums.eRank.JOKER){
+			this.setWild(true);
+		}
 		this.eRank = eRank;
 		this.iCardNbr = iCardNbr;
 	}
@@ -33,7 +37,12 @@ public class Card implements Comparable {
 	public int getiCardNbr() {
 		return iCardNbr;
 	}
-
+	public boolean getWild() {
+		return wild;
+	}
+	public void setWild(boolean logic){
+		wild = logic;
+	}
 	void seteSuit(eSuit eSuit) {
 		this.eSuit = eSuit;
 	}
@@ -58,5 +67,8 @@ public class Card implements Comparable {
 	    Card c = (Card) o; 
 	    return c.geteRank().compareTo(this.geteRank()); 
 
+	}
+	public String toString(){
+		return "Rank: "+this.eRank+" of "+this.eSuit;
 	}
 }
